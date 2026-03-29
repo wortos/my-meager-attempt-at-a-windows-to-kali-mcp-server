@@ -1,10 +1,29 @@
 # Contributing
 
+![Open Source](https://img.shields.io/badge/collaboration-welcome-1f6feb)
+![Privacy](https://img.shields.io/badge/privacy-sanitized-2ea043)
+![Docs](https://img.shields.io/badge/focus-documentation-8250df)
+
 Thanks for helping improve this project.
+
+## Contribution flow
+
+```mermaid
+flowchart LR
+    A[Identify problem or improvement] --> B[Prepare focused change]
+    B --> C[Sanitize screenshots, logs, and examples]
+    C --> D[Explain what changed]
+    D --> E[Open pull request]
+```
 
 ## Before you contribute
 
-Please keep contributions practical, reproducible, and privacy-conscious.
+Please keep contributions:
+
+- practical
+- reproducible
+- privacy-conscious
+- easy to review
 
 Good contributions include:
 
@@ -26,12 +45,12 @@ Good contributions include:
 
 ## Preferred contribution style
 
-- Keep changes focused
-- Explain what problem the change solves
-- Include exact reproduction steps when reporting a bug
-- Sanitize screenshots and logs before uploading
+- keep changes focused
+- explain what problem the change solves
+- include exact reproduction steps when reporting a bug
+- sanitize screenshots and logs before uploading
 
-## Pull request suggestions
+## Pull request checklist
 
 When opening a pull request, include:
 

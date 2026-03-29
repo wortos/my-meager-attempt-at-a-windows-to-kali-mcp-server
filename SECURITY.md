@@ -1,8 +1,25 @@
 # Security Policy
 
+![Security](https://img.shields.io/badge/security-policy-red)
+![Disclosure](https://img.shields.io/badge/disclosure-private-important)
+![Repo](https://img.shields.io/badge/repo-sanitized-2ea043)
+
+This repository is mostly documentation and example configuration, so the most likely security issues involve **exposed secrets**, **unsafe examples**, or **sensitive environment details accidentally committed**.
+
+## Reporting flow
+
+```mermaid
+flowchart LR
+    A[Potential issue found] --> B{Sensitive?}
+    B -- Yes --> C[Report privately to repo owner]
+    B -- No --> D[Open normal issue or pull request]
+    C --> E[Describe impact and location]
+    E --> F[Provide suggested fix if possible]
+```
+
 ## Supported content
 
-This repository is primarily documentation and example configuration. Security issues are most likely to involve:
+Security issues are most likely to involve:
 
 - exposed credentials
 - unsafe example commands

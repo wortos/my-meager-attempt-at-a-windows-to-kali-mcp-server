@@ -1,30 +1,45 @@
 # Installation Guide
 
-This guide shows one way to connect Claude Desktop on Windows to a Kali MCP server over SSH.
+![Setup](https://img.shields.io/badge/phase-installation-1f6feb)
+![Client](https://img.shields.io/badge/client-Claude%20Desktop-8250df)
+![Host](https://img.shields.io/badge/host-Kali%20Linux-2ea043)
+![Transport](https://img.shields.io/badge/transport-SSH-orange)
+
+This guide shows one practical way to connect **Claude Desktop on Windows** to a **Kali MCP server over SSH**.
+
+## Setup flow
+
+```mermaid
+graph LR
+    A[Windows] --> B[Claude Desktop]
+    B --> C[SSH]
+    C --> D[Kali VM]
+    D --> E[mcp-server]
+```
 
 ## 1. Confirm SSH works from Windows to Kali
 
 ### What this check does
 
-This command tests basic SSH connectivity and verifies that the remote machine accepts a login and can run a simple command.
+This command verifies that Windows can reach the Kali VM, authenticate, and run a simple remote command.
 
 ```powershell
 ssh user@KALI-IP "echo OK"
 ```
 
-You should get:
+Expected output:
 
 ```text
 OK
 ```
 
-If not, fix SSH or networking first.
+If this fails, fix SSH or networking first.
 
-## 2. Verify that mcp-server exists on Kali
+## 2. Verify that `mcp-server` exists on Kali
 
 ### What this check does
 
-This command asks Kali where `mcp-server` is installed. It confirms that the executable is present and discoverable in PATH.
+This command confirms that the MCP server executable is installed and available in the Kali PATH.
 
 ```powershell
 ssh user@KALI-IP "which mcp-server"
@@ -36,9 +51,9 @@ Expected output might look like:
 /usr/bin/mcp-server
 ```
 
-## 3. Locate Claude Desktop's config file on Windows
+## 3. Locate the Claude Desktop config file on Windows
 
-Depending on your installation, check one of these:
+Depending on how Claude Desktop was installed, check one of these paths.
 
 ### Microsoft Store installation
 
@@ -54,48 +69,47 @@ Depending on your installation, check one of these:
 
 ## 4. Add an MCP server entry
 
-Use the example in `examples/claude_desktop_config.example.json` and adapt it to your environment.
+Use the sanitized example from `examples/claude_desktop_config.example.json` and adapt it to your own environment.
 
 Important:
 
-- Replace the SSH key path
-- Replace the username
-- Replace the Kali IP
-- Do not commit private keys
+- replace the SSH key path
+- replace the username
+- replace the Kali IP
+- never commit private keys or real secrets
 
 ## 5. Restart Claude Desktop fully
 
-### What this step is verifying
+### What this step verifies
 
-You are making sure Claude reloads the configuration file from disk instead of continuing to use cached settings.
+This makes sure Claude reloads the config from disk instead of using cached settings.
 
-Close Claude completely, then reopen it.
+- close Claude completely
+- reopen the application
+- test a small request before trying anything longer
 
 ## 6. Test a minimal remote workflow
-
-Start with a small command before trying scans or long-running actions.
 
 ### What this verifies
 
 You are checking that:
 
-- the config is valid
+- the JSON config is valid
 - SSH launches correctly
 - Claude can start the remote process
-- the server responds
+- the server responds without timing out immediately
 
-## 7. Move to longer commands only after basic success
+## 7. Move to longer actions only after basic success
 
-If simple checks work but scans fail, review:
+If short checks work but longer actions fail, review:
 
 - timeout settings
 - sudo or permission issues
-- network reachability to scan targets
-- command execution limits in the MCP wrapper
+- network reachability to targets
+- command execution limits in the wrapper
+- commands that may be waiting on interactive prompts
 
 ## Optional Kali checks
-
-Run these directly on Kali if you suspect a network problem.
 
 ### Show IP addresses
 
@@ -120,3 +134,7 @@ nmcli connection show
 ```bash
 systemctl status NetworkManager
 ```
+
+## Privacy reminder
+
+Keep examples sanitized. Use placeholders such as `user`, `KALI-IP`, and non-sensitive paths whenever publishing documentation.
