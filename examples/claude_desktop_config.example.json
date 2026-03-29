@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "mcp-kali-server": {
+      "command": "ssh",
+      "args": [
+        "-i",
+        "C:\\Users\\YOUR-USER\\.ssh\\id_ed25519",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "-o",
+        "BatchMode=yes",
+        "YOUR-KALI-USER@192.168.56.101",
+        "mcp-server"
+      ]
+    }
+  }
+}
