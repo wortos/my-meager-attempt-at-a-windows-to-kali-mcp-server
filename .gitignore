@@ -1,0 +1,28 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+
+# SSH / secrets
+*.pem
+*.key
+id_rsa
+id_ed25519
+*.p12
+*.pfx
+.env
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
