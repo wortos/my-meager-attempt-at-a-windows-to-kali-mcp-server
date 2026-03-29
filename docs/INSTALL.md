@@ -5,26 +5,223 @@
 ![Host](https://img.shields.io/badge/host-Kali%20Linux-2ea043)
 ![Transport](https://img.shields.io/badge/transport-SSH-orange)
 
-This guide shows one practical way to connect **Claude Desktop on Windows** to a **Kali MCP server over SSH**.
+This guide adapts the flow from the official Kali Linux blog post about **macOS → Kali with Claude Desktop** into a **Windows → Kali** setup.
 
-## Setup flow
+Source of inspiration:
+
+- [Kali & LLM: macOS with Claude Desktop GUI & Anthropic Sonnet LLM](https://www.kali.org/blog/kali-llm-claude-desktop/)
+
+The official Kali post uses **macOS as the GUI client** and notes that **Microsoft Windows can also be used, but is not covered there**. This document fills in the Windows side with a privacy-safe, step-by-step approach.
+
+## End-to-end setup flow
 
 ```mermaid
 graph LR
     A[Windows] --> B[Claude Desktop]
     B --> C[SSH]
     C --> D[Kali VM]
-    D --> E[mcp-server]
+    D --> E[kali-server-mcp]
+    D --> F[mcp-server]
+    F --> G[Kali tools]
 ```
 
-## 1. Confirm SSH works from Windows to Kali
+## Overview of what you are building
 
-### What this check does
+You are connecting three pieces together:
 
-This command verifies that Windows can reach the Kali VM, authenticate, and run a simple remote command.
+1. **Windows** as the desktop client
+2. **Kali Linux** as the VM/tool host
+3. **Claude Desktop** as the MCP client that reaches Kali over SSH
+
+At a high level:
+
+- Windows runs Claude Desktop
+- Claude Desktop launches `ssh`
+- SSH connects to Kali
+- Kali runs `mcp-server`
+- `mcp-server` talks to `kali-server-mcp`
+- Kali tools become available through the MCP workflow
+
+---
+
+## Part 1 - Prepare the Kali VM
+
+### Step 1. Install or update Kali
+
+Start with a working Kali VM. A minimal install is fine, but it will usually be missing many tools.
+
+Before moving on, confirm:
+
+- the VM boots correctly
+- you can log in locally
+- the VM has network connectivity
+
+### Step 2. Find the Kali IP address
+
+### What this checks
+
+This tells you the IP address Windows will use to reach Kali over SSH.
+
+Run on Kali:
+
+```bash
+ip addr
+```
+
+Look for the active interface and note the current IP address.
+
+Use a placeholder like `KALI-IP` in documentation. Do not publish your real internal IP if you want to keep your lab private.
+
+### Step 3. Install and start SSH on Kali
+
+This follows the same starting point as the official Kali blog.
+
+### What this does
+
+These commands install the SSH server and make sure it starts now and on future boots.
+
+Run on Kali:
+
+```bash
+sudo apt update
+sudo apt install -y openssh-server
+sudo systemctl enable --now ssh
+```
+
+### Step 4. Verify the SSH service is running
+
+### What this checks
+
+This confirms that Kali is actively listening for SSH connections.
+
+Run on Kali:
+
+```bash
+systemctl status ssh
+```
+
+You want to see that the service is active.
+
+### Step 5. Optional but helpful: install common networking utilities
+
+### What this does
+
+These are not required for SSH itself, but they make troubleshooting easier.
+
+Run on Kali:
+
+```bash
+sudo apt install -y net-tools iproute2 network-manager
+```
+
+### Step 6. Check that Kali networking is stable
+
+### What this checks
+
+This confirms the interface is up, managed, and has the expected address.
+
+Run on Kali:
+
+```bash
+nmcli device status
+nmcli connection show
+ip addr
+```
+
+If the interface is not being managed correctly, fix that before continuing.
+
+---
+
+## Part 2 - Create SSH key-based access from Windows to Kali
+
+### Step 7. Open PowerShell on Windows
+
+Use either:
+
+- Windows PowerShell
+- PowerShell 7
+- Windows Terminal with a PowerShell profile
+
+### Step 8. Check whether you already have an SSH key
+
+### What this checks
+
+This tells you whether a key pair already exists in your Windows profile.
+
+Run on Windows:
 
 ```powershell
-ssh user@KALI-IP "echo OK"
+Get-ChildItem $HOME\.ssh
+```
+
+If you already have an `id_ed25519` key pair you want to use, you can keep it. Otherwise generate a new one.
+
+### Step 9. Generate a new SSH key on Windows if needed
+
+### What this does
+
+This creates a private key and public key for SSH authentication.
+
+Run on Windows:
+
+```powershell
+ssh-keygen -t ed25519
+```
+
+Accept the default path unless you have a reason to change it.
+
+The default key path will normally be:
+
+```text
+C:\Users\YOUR-USER\.ssh\id_ed25519
+```
+
+Do **not** publish the real contents of your private key.
+
+### Step 10. Copy the public key to Kali
+
+### What this does
+
+This allows Windows to authenticate to Kali using the SSH key instead of typing the Kali password every time.
+
+#### Option A - Use `ssh-copy-id` if you have it available
+
+```powershell
+ssh-copy-id kali@KALI-IP
+```
+
+#### Option B - Manual method from Windows
+
+First display your public key:
+
+```powershell
+Get-Content $HOME\.ssh\id_ed25519.pub
+```
+
+Then, on Kali, append that public key into:
+
+```text
+~/.ssh/authorized_keys
+```
+
+Make sure the permissions are correct on Kali:
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+### Step 11. Test SSH from Windows to Kali
+
+### What this checks
+
+This confirms that Windows can log in to Kali and run a simple remote command.
+
+Run on Windows:
+
+```powershell
+ssh kali@KALI-IP "echo OK"
 ```
 
 Expected output:
@@ -33,108 +230,237 @@ Expected output:
 OK
 ```
 
-If this fails, fix SSH or networking first.
+If this fails, do not move on yet. Fix SSH first.
 
-## 2. Verify that `mcp-server` exists on Kali
+---
 
-### What this check does
+## Part 3 - Install the Kali MCP components
 
-This command confirms that the MCP server executable is installed and available in the Kali PATH.
+### Step 12. Install the Kali MCP server package
 
-```powershell
-ssh user@KALI-IP "which mcp-server"
+This follows the same package used in the Kali blog post.
+
+### What this does
+
+This installs the Kali-side server components used by the MCP workflow.
+
+Run on Kali:
+
+```bash
+sudo apt update
+sudo apt install -y mcp-kali-server
 ```
 
-Expected output might look like:
+### Step 13. Start the Kali API server
 
-```text
-/usr/bin/mcp-server
+### What this does
+
+This starts the Kali API service that `mcp-server` will connect to locally.
+
+Run on Kali:
+
+```bash
+kali-server-mcp
 ```
 
-## 3. Locate the Claude Desktop config file on Windows
+You should leave this running while testing.
 
-Depending on how Claude Desktop was installed, check one of these paths.
+The service normally binds to localhost and logs that it has started.
 
-### Microsoft Store installation
+### Step 14. In a second Kali terminal, test the MCP server client
+
+### What this checks
+
+This verifies that `mcp-server` can connect to the local Kali API service.
+
+Run on Kali in another terminal:
+
+```bash
+mcp-server
+```
+
+If the connection is healthy, you should see that it connected successfully to the Kali API server.
+
+### Step 15. Install the tools that the Kali MCP workflow expects
+
+The official Kali post shows that a minimal Kali install may be missing many tools. This step addresses that directly.
+
+### What this does
+
+This installs the MCP package again along with a practical set of supported security tools and wordlists.
+
+Run on Kali:
+
+```bash
+sudo apt install -y mcp-kali-server dirb gobuster nikto nmap enum4linux-ng hydra john metasploit-framework sqlmap wpscan wordlists
+```
+
+### Step 16. Expand the RockYou wordlist if you plan to use it
+
+### What this does
+
+Some workflows expect the file to be uncompressed and ready to use.
+
+Run on Kali:
+
+```bash
+sudo gunzip -v /usr/share/wordlists/rockyou.txt.gz
+```
+
+### Step 17. Re-test `mcp-server`
+
+### What this checks
+
+This confirms that the Kali API server is reachable and that the server can see the installed tools.
+
+Run on Kali:
+
+```bash
+mcp-server
+```
+
+If you still see warnings about missing tools, install the missing packages before continuing.
+
+---
+
+## Part 4 - Install and configure Claude Desktop on Windows
+
+### Step 18. Install Claude Desktop on Windows
+
+Install Claude Desktop normally on Windows and sign in.
+
+After installation, open the app once so its config path is created.
+
+### Step 19. Find the Claude Desktop config path on Windows
+
+Depending on how Claude Desktop was installed, check one of these:
+
+#### Microsoft Store installation
 
 ```text
 %LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json
 ```
 
-### Standard installation
+#### Standard installation
 
 ```text
 %APPDATA%\Claude\claude_desktop_config.json
 ```
 
-## 4. Add an MCP server entry
+### Step 20. Edit `claude_desktop_config.json`
 
-Use the sanitized example from `examples/claude_desktop_config.example.json` and adapt it to your own environment.
+### What this does
 
-Important:
+This tells Claude Desktop how to launch the remote MCP server through SSH.
 
-- replace the SSH key path
-- replace the username
-- replace the Kali IP
-- never commit private keys or real secrets
+Use the sanitized example in this repository:
 
-## 5. Restart Claude Desktop fully
+- `examples/claude_desktop_config.example.json`
 
-### What this step verifies
+Example structure:
 
-This makes sure Claude reloads the config from disk instead of using cached settings.
+```json
+{
+  "mcpServers": {
+    "mcp-kali-server": {
+      "command": "ssh",
+      "args": [
+        "-i",
+        "C:\\Users\\YOUR-USER\\.ssh\\id_ed25519",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "-o",
+        "BatchMode=yes",
+        "YOUR-KALI-USER@KALI-IP",
+        "mcp-server"
+      ]
+    }
+  }
+}
+```
 
-- close Claude completely
-- reopen the application
-- test a small request before trying anything longer
+Replace only the placeholders:
 
-## 6. Test a minimal remote workflow
+- `YOUR-USER`
+- `YOUR-KALI-USER`
+- `KALI-IP`
 
-### What this verifies
+Do **not** publish your real username, private key path, or environment values in the repository.
 
-You are checking that:
+### Step 21. Restart Claude Desktop fully
 
-- the JSON config is valid
-- SSH launches correctly
-- Claude can start the remote process
-- the server responds without timing out immediately
+### What this checks
 
-## 7. Move to longer actions only after basic success
+This makes sure Claude reloads the MCP config from disk.
 
-If short checks work but longer actions fail, review:
+Do a full close and reopen, not just a window minimize.
+
+---
+
+## Part 5 - Test the complete workflow
+
+### Step 22. Keep `kali-server-mcp` running on Kali
+
+You need the Kali API server available while Claude tries to connect.
+
+### Step 23. Make a simple request in Claude Desktop
+
+Start with something small and low risk.
+
+Examples:
+
+- ask Claude to verify whether a tool exists
+- ask Claude to perform a simple check that does not require a long runtime
+
+The point of the first test is to verify the end-to-end path, not to stress the setup.
+
+### Step 24. If short actions work, move to longer ones carefully
+
+If longer actions fail while short ones work, review:
 
 - timeout settings
-- sudo or permission issues
-- network reachability to targets
-- command execution limits in the wrapper
-- commands that may be waiting on interactive prompts
+- permissions
+- target reachability
+- commands waiting for interactive input
 
-## Optional Kali checks
+---
 
-### Show IP addresses
+## Useful verification commands
+
+### On Kali
 
 ```bash
+which mcp-server
+which kali-server-mcp
+systemctl status ssh
 ip addr
-```
-
-### Show network devices
-
-```bash
 nmcli device status
-```
-
-### Show configured connections
-
-```bash
 nmcli connection show
 ```
 
-### Check NetworkManager
+### On Windows
 
-```bash
-systemctl status NetworkManager
+```powershell
+ssh kali@KALI-IP "echo OK"
+ssh -i C:\Users\YOUR-USER\.ssh\id_ed25519 kali@KALI-IP "which mcp-server"
 ```
+
+---
 
 ## Privacy reminder
 
-Keep examples sanitized. Use placeholders such as `user`, `KALI-IP`, and non-sensitive paths whenever publishing documentation.
+Keep examples sanitized.
+
+Use placeholders such as:
+
+- `YOUR-USER`
+- `YOUR-KALI-USER`
+- `KALI-IP`
+
+Never upload:
+
+- private keys
+- passwords
+- tokens
+- real internal IPs
+- raw logs containing personal or environment-specific information
