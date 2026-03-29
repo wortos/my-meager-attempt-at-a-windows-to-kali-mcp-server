@@ -132,6 +132,134 @@ If the interface is not being managed correctly, fix that before continuing.
 
 ---
 
+## Part 1A - Configure the VM network on the Windows host
+
+For most lab setups, the easiest pattern is to give the VM **two adapters**:
+
+- **Adapter 1: NAT** for Internet access from Kali
+- **Adapter 2: Host-only** so Windows can always reach Kali directly over a private lab network
+
+That gives you a stable management path from Windows to Kali without depending on your home router, while still letting Kali install packages and updates through NAT.
+
+### Option A - VirtualBox host-only setup
+
+VirtualBox includes **Host-Only Networks** in its Network Manager.
+
+#### Step 6A-1. Create or verify a host-only network in VirtualBox
+
+On the Windows host:
+
+1. Open **VirtualBox**
+2. Go to **Tools** → **Network**
+3. Open the **Host-Only Networks** tab
+4. Create a host-only network if one does not already exist
+5. Verify that the host-only network has an IPv4 range you want to use for your lab
+
+A common private example is:
+
+- host-only network: `192.168.56.0/24`
+- Windows host adapter: `192.168.56.1`
+- Kali guest: `192.168.56.101`
+
+Use your own values if you prefer.
+
+#### Step 6A-2. Attach the Kali VM to NAT and Host-only
+
+In the Kali VM settings:
+
+1. Open **Settings** → **Network**
+2. Set **Adapter 1** to **NAT**
+3. Enable **Adapter 2**
+4. Set **Adapter 2** to **Host-Only Network** or **Host-Only Adapter**, depending on the version shown in your UI
+5. Select the host-only network you created earlier
+
+#### Step 6A-3. Boot Kali and check both interfaces
+
+Run on Kali:
+
+```bash
+ip addr
+```
+
+You should normally see:
+
+- one interface with a NAT-side address
+- one interface with a host-only address in your private lab range
+
+### Option B - VMware Workstation host-only setup
+
+In VMware Workstation, the host-only network is commonly **VMnet1**, while NAT is commonly **VMnet8**.
+
+#### Step 6B-1. Open VMware virtual network settings
+
+On the Windows host:
+
+1. Open **VMware Workstation**
+2. Open the **Virtual Network Editor**
+3. Verify that a **Host-only** network exists
+4. Verify the subnet you want to use for the host-only network
+
+A common example is:
+
+- **VMnet1** = host-only
+- **VMnet8** = NAT
+
+#### Step 6B-2. Attach the Kali VM to NAT and Host-only
+
+In the Kali VM settings:
+
+1. Open **Edit virtual machine settings**
+2. Add or verify one network adapter set to **NAT**
+3. Add a second network adapter set to **Host-only**
+4. Save the VM settings
+
+#### Step 6B-3. Boot Kali and check both interfaces
+
+Run on Kali:
+
+```bash
+ip addr
+```
+
+You should normally see:
+
+- one interface for NAT
+- one interface for the host-only subnet
+
+### Step 6C. Make the host-only side predictable
+
+If you want a stable SSH target, it is often easier to use a fixed address on the host-only interface inside Kali.
+
+Example on Kali with NetworkManager:
+
+```bash
+nmcli connection show
+```
+
+Identify the host-only connection name, then set a static address such as:
+
+```bash
+sudo nmcli connection modify "HOSTONLY-CONNECTION" ipv4.addresses 192.168.56.101/24 ipv4.method manual
+sudo nmcli connection up "HOSTONLY-CONNECTION"
+```
+
+Replace:
+
+- `HOSTONLY-CONNECTION` with the real connection name
+- `192.168.56.101/24` with the address you want to use
+
+### Step 6D. Verify Windows can reach Kali on the host-only address
+
+From Windows PowerShell:
+
+```powershell
+ssh kali@KALI-IP "echo OK"
+```
+
+If you are using the host-only address as your SSH target, `KALI-IP` should be the host-only IP, not the NAT-side IP.
+
+---
+
 ## Part 2 - Create SSH key-based access from Windows to Kali
 
 ### Step 7. Open PowerShell on Windows
