@@ -230,13 +230,26 @@ You should normally see:
 
 If you want a stable SSH target, it is often easier to use a fixed address on the host-only interface inside Kali.
 
-Example on Kali with NetworkManager:
+First check whether NetworkManager is actually managing the interface:
 
 ```bash
+nmcli device status
+```
+
+If the interface shows as `unmanaged`, fix that first:
+
+```bash
+sudo nmcli device set eth0 managed yes
+```
+
+Then confirm the interface is now managed and identify the connection name:
+
+```bash
+nmcli device status
 nmcli connection show
 ```
 
-Identify the host-only connection name, then set a static address such as:
+Once the interface is managed, set a static address such as:
 
 ```bash
 sudo nmcli connection modify "HOSTONLY-CONNECTION" ipv4.addresses 192.168.56.101/24 ipv4.method manual
@@ -245,6 +258,7 @@ sudo nmcli connection up "HOSTONLY-CONNECTION"
 
 Replace:
 
+- `eth0` with the real device name if different
 - `HOSTONLY-CONNECTION` with the real connection name
 - `192.168.56.101/24` with the address you want to use
 
@@ -491,6 +505,7 @@ Example structure:
 {
   "mcpServers": {
     "mcp-kali-server": {
+      "transport": "stdio",
       "command": "ssh",
       "args": [
         "-i",

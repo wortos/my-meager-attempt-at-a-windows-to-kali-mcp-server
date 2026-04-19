@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "mcp-kali-server": {
+      "transport": "stdio",
       "command": "ssh",
       "args": [
         "-i",

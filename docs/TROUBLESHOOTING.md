@@ -85,6 +85,63 @@ nmcli connection show
 systemctl restart NetworkManager
 ```
 
+## Specific case: `eth0` shows as unmanaged
+
+### Symptom
+
+`nmcli device status` shows the interface as `unmanaged`, which means NetworkManager will not apply connection changes to it yet.
+
+### Fix
+
+First tell NetworkManager to manage the device:
+
+```bash
+sudo nmcli device set eth0 managed yes
+```
+
+Then verify that it is now managed:
+
+```bash
+nmcli device status
+```
+
+After that, you can bring up or modify the connection normally, for example:
+
+```bash
+sudo nmcli connection up "HOSTONLY-CONNECTION"
+sudo nmcli connection modify "HOSTONLY-CONNECTION" ipv4.addresses 192.168.56.101/24 ipv4.method manual
+```
+
+Replace:
+
+- `eth0` with the actual device name if different
+- `HOSTONLY-CONNECTION` with the actual connection name
+
+## Specific case: SSH banner or MOTD breaks MCP startup
+
+### Symptom
+
+SSH connects, but the MCP session drops almost immediately or behaves as if the remote process exits after only a very short time.
+
+### Likely cause
+
+Extra stdout text from banners, MOTD scripts, shell startup files, or other login-time output can interfere with an MCP stdio session.
+
+### Things to check
+
+Review whether the SSH login prints anything before `mcp-server` starts, such as:
+
+- MOTD output
+- custom shell echo statements
+- banner text
+- profile scripts that write to stdout
+
+### Fix ideas
+
+- remove or silence unnecessary login-time output for the SSH session used by Claude
+- test the exact SSH command manually and confirm it does not emit extra text before `mcp-server`
+- keep the MCP SSH path as quiet and non-interactive as possible
+
 ## Short tasks work but longer actions fail
 
 ### Possible cause
