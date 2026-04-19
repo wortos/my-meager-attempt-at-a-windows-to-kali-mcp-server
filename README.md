@@ -197,6 +197,61 @@ This setup is **not** best suited for:
 
 In other words, this is primarily a **CLI + SSH + Kali tools** workflow, not a full remote desktop bot.
 
+## Suggested first tasks
+
+These are practical prompts you can try right after getting the extension working.
+
+### Health and setup checks
+
+- **Check whether my Kali MCP stack is healthy.**
+- **Verify that `mcp-server` and `kali-server-mcp` are installed and reachable.**
+- **Show me the current IP addresses on Kali and tell me which one Windows should use.**
+- **Check whether SSH is running correctly on Kali.**
+
+### Network troubleshooting
+
+- **Figure out why Windows cannot SSH into my Kali VM.**
+- **Check whether my host-only adapter is managed by NetworkManager.**
+- **Tell me whether Kali is listening on port 22.**
+- **Compare my NAT and host-only interfaces and explain which one I should use for Claude.**
+
+### Tool and environment checks
+
+- **List the security tools currently installed on this Kali VM.**
+- **Check whether `nmap`, `nikto`, `gobuster`, `sqlmap`, and `wpscan` are installed.**
+- **Show me what services are listening locally on Kali.**
+- **Verify whether the RockYou wordlist is available and extracted.**
+
+### Small authorized lab tasks
+
+- **Run a quick authorized recon against this lab host and summarize the results.**
+- **Do a small `nmap` version scan against this lab target and explain the findings.**
+- **Run directory discovery against this lab web app and tell me what looks important.**
+- **Check whether this test host exposes common web weaknesses I should review manually.**
+
+### Analysis and reporting
+
+- **Summarize this scan output for a manager.**
+- **Turn this command output into remediation bullets.**
+- **Write a short findings section based on this tool output.**
+- **Explain which results matter most and which are probably noise.**
+
+### Script and config review
+
+- **Read this script and tell me what it does.**
+- **Search this config file for the timeout setting.**
+- **Look through these logs and identify the most likely failure point.**
+- **Inspect this command runner and explain why it may be timing out.**
+
+### Good prompt style
+
+The best prompts are usually:
+
+- specific
+- scoped to one goal
+- tied to an authorized lab or system you control
+- followed by a request to summarize or explain the output
+
 ## Quick visual summary
 
 ```text
