@@ -64,6 +64,48 @@ The Kali article shows the general pattern very well. This repo exists to make t
 - a local VM or lab setup
 - privacy-safe examples instead of real environment details
 
+## How this repo compares to similar setups
+
+Several other repositories and guides cover the Kali + Claude Desktop + MCP pattern. This repo is not trying to replace them. It focuses on a narrower use case: **Windows → Claude Desktop → SSH → Kali VM**, with an emphasis on **sanitized examples** and **real troubleshooting notes from actual setup failures**.
+
+### The official starting point
+
+The [Kali Linux blog post](https://www.kali.org/blog/kali-llm-claude-desktop/) is the canonical reference for this setup. It documents the **macOS → Kali** flow and explicitly notes that **Microsoft Windows can also be used, but is not covered there**. This repo exists to fill that Windows-specific gap.
+
+### Other approaches worth knowing about
+
+**[xGh05t/kali-mcp-claude_setup](https://github.com/xGh05t/kali-mcp-claude_setup)**  
+Runs Claude Desktop natively on Kali Linux itself instead of using a separate Windows or macOS client. Best if you want everything on one Linux machine.
+
+**[marklechner/kali-mcp-server](https://github.com/marklechner/kali-mcp-server)**  
+Uses a Docker-based architecture on macOS. Claude Desktop runs on the Mac host, while Kali tools run in a privileged Docker container. Good fit if you prefer **containers over VMs** and are comfortable with a Mac-focused Docker workflow.
+
+**[Wh0am123/MCP-Kali-Server](https://github.com/Wh0am123/MCP-Kali-Server)**  
+This is the upstream-style Python project that much of the ecosystem builds around. It exposes a lightweight API bridge on the Kali side and documents an **SSH tunnel** pattern for remote use. It is more implementation-oriented and technically detailed, but less focused on Windows-specific onboarding and troubleshooting.
+
+**[surya4682/kali-mcp-claude-windows](https://github.com/surya4682/kali-mcp-claude-windows)**  
+The closest known Windows-oriented sibling. It is referenced from Kali’s bug tracker as documenting a workaround discovered during a Windows + Claude Desktop + `mcp-kali-server` setup. If the standard SSH config approach does not work on your Windows system, this is one of the first alternative paths worth checking.
+
+### What this repo focuses on
+
+- **Windows MSIX config path** — Claude Desktop on Windows may be installed as a sandboxed Microsoft Store package, which reads its config from a different path than the standard docs describe. This repo documents both paths and highlights that failure point near the top of the README.
+- **Sanitized examples** — All examples use placeholders instead of real usernames, IPs, or key paths, making the repo safer to reference publicly.
+- **Troubleshooting from real failure points** — The docs cover issues actually encountered in Windows + VM setups, including wrong config path selection, `eth0 unmanaged`, MOTD/banner stdout interference, and lingering Claude Desktop processes.
+
+### Honest gaps
+
+This repo does **not** currently implement the paramiko-bridge style workaround that some Windows users may need when plain SSH/stdin behavior is flaky. If you hit persistent Windows SSH connection issues that the standard JSON config cannot resolve, check the Windows-oriented alternative referenced above.
+
+### Bottom line
+
+Different repos solve different problems:
+
+- use the **Kali blog** for the official baseline
+- use **xGh05t** if you want Claude Desktop running directly on Kali
+- use **marklechner** if you want a Docker-on-Mac pattern
+- use **Wh0am123** if you want the upstream/project-level implementation details
+- use **this repo** if you want the most Windows-specific, privacy-safe, troubleshooting-heavy walkthrough
+
 ## What this extension can realistically do
 
 With this setup running, Claude acts like a **natural-language front end for your Kali command line over SSH**.
