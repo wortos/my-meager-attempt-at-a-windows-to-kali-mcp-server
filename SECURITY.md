@@ -41,7 +41,7 @@ Repository maintainers:
 
 Reference:
 
-- GitHub Docs: private vulnerability reporting
+- [GitHub Docs: Configuring private vulnerability reporting for a repository](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository)
 
 If private reporting is not available, contact the repository owner privately through GitHub before disclosing anything sensitive.
 
