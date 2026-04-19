@@ -44,6 +44,40 @@ Claude Desktop may be reading the Microsoft Store sandboxed config path instead 
 - save it
 - fully restart Claude Desktop
 
+## Specific case: Claude shows "No servers added" despite correct config
+
+### Likely cause
+
+You edited a valid config file, but not the one Claude Desktop is actually reading.
+
+### Fix
+
+Use Claude Desktop's built-in **Edit Config** action or button to identify which config path is live on your system.
+
+Then:
+
+- edit that exact file
+- save it
+- fully restart Claude Desktop
+
+## Specific case: lingering Claude Desktop processes keep old config loaded
+
+### Symptom
+
+You change the config, relaunch Claude, and nothing appears to change.
+
+### Likely cause
+
+Claude Desktop may still have background processes alive, so the new config is never fully reloaded.
+
+### Fix
+
+On Windows:
+
+- open **Task Manager**
+- end all remaining Claude Desktop processes
+- relaunch Claude Desktop
+
 ## SSH from Windows to Kali fails
 
 ### Checks
@@ -139,6 +173,8 @@ Review whether the SSH login prints anything before `mcp-server` starts, such as
 ### Fix ideas
 
 - remove or silence unnecessary login-time output for the SSH session used by Claude
+- add `-q` on the SSH side if you want a quieter SSH client invocation
+- set `PrintMotd no` and `PrintLastLog no` in `/etc/ssh/sshd_config`
 - test the exact SSH command manually and confirm it does not emit extra text before `mcp-server`
 - keep the MCP SSH path as quiet and non-interactive as possible
 

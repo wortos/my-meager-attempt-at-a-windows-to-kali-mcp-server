@@ -11,7 +11,7 @@ This repository is mostly documentation and example configuration, so the most l
 ```mermaid
 flowchart LR
     A[Potential issue found] --> B{Sensitive?}
-    B -- Yes --> C[Report privately to repo owner]
+    B -- Yes --> C[Use private vulnerability reporting if enabled]
     B -- No --> D[Open normal issue or pull request]
     C --> E[Describe impact and location]
     E --> F[Provide suggested fix if possible]
@@ -30,7 +30,20 @@ Security issues are most likely to involve:
 
 Please do **not** open a public issue for sensitive security problems.
 
-Instead, report the issue privately to the repository owner by direct contact if available.
+Preferred path:
+
+- use GitHub's built-in **private vulnerability reporting** for this repository if it is enabled
+- in the repository UI, look for **Security** or **Advisories**, then **Report a vulnerability**
+
+Repository maintainers:
+
+- if private vulnerability reporting is not enabled yet, enable it in **Settings** → **Advanced Security** → **Private vulnerability reporting**
+
+Reference:
+
+- GitHub Docs: private vulnerability reporting
+
+If private reporting is not available, contact the repository owner privately through GitHub before disclosing anything sensitive.
 
 Include:
 

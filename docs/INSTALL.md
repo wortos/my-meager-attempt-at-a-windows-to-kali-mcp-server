@@ -102,6 +102,25 @@ systemctl status ssh
 
 You want to see that the service is active.
 
+### Step 4A. Optional: reduce SSH login noise for MCP sessions
+
+### What this does
+
+MCP over SSH works best when the remote side is quiet and does not emit extra banner text.
+
+Optional hardening in `/etc/ssh/sshd_config`:
+
+```text
+PrintMotd no
+PrintLastLog no
+```
+
+After editing the SSH config, reload or restart SSH:
+
+```bash
+sudo systemctl restart ssh
+```
+
 ### Step 5. Optional but helpful: install common networking utilities
 
 ### What this does
@@ -113,6 +132,31 @@ Run on Kali:
 ```bash
 sudo apt install -y net-tools iproute2 network-manager
 ```
+
+### Step 5A. If `dhclient` is missing on a minimal install
+
+Some minimal Kali installs may not include `dhclient` or may not bring an interface up the way you expect.
+
+### What this does
+
+These commands bring the interface up manually and let you assign an address directly if needed.
+
+Bring the interface up:
+
+```bash
+sudo ip link set eth0 up
+```
+
+Assign a temporary address manually if needed:
+
+```bash
+sudo ip addr add 192.168.56.101/24 dev eth0
+```
+
+Replace:
+
+- `eth0` with the actual device name if different
+- `192.168.56.101/24` with the address appropriate for your host-only subnet
 
 ### Step 6. Check that Kali networking is stable
 
@@ -409,6 +453,40 @@ You should leave this running while testing.
 
 The service normally binds to localhost and logs that it has started.
 
+### Step 13A. Optional: keep `kali-server-mcp` alive across reboots with systemd
+
+If you do not want to start `kali-server-mcp` manually every time, create a simple systemd service.
+
+Example unit file:
+
+```ini
+[Unit]
+Description=Kali MCP API Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/kali-server-mcp
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Save it as:
+
+```text
+/etc/systemd/system/kali-server-mcp.service
+```
+
+Then enable and start it:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now kali-server-mcp
+sudo systemctl status kali-server-mcp
+```
+
 ### Step 14. In a second Kali terminal, test the MCP server client
 
 ### What this checks
@@ -576,6 +654,7 @@ If longer actions fail while short ones work, review:
 which mcp-server
 which kali-server-mcp
 systemctl status ssh
+systemctl status kali-server-mcp
 ip addr
 nmcli device status
 nmcli connection show

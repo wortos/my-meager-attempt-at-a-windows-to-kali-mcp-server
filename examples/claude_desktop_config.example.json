@@ -10,7 +10,7 @@
         "StrictHostKeyChecking=no",
         "-o",
         "BatchMode=yes",
-        "YOUR-KALI-USER@192.168.56.101",
+        "YOUR-KALI-USER@KALI-IP",
         "mcp-server"
       ]
     }

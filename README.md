@@ -8,6 +8,11 @@
 
 A sanitized, documentation-first guide for building a **Windows-to-Kali MCP workflow over SSH** with **Claude Desktop** as the client and **Kali Linux** as the tool host.
 
+> [!IMPORTANT]
+> On Windows, the most common failure point is editing the **wrong Claude Desktop config file**.
+> If Claude Desktop was installed from the Microsoft Store, it may read the sandboxed MSIX path instead of the standard roaming-profile path.
+> Check both paths in `docs/INSTALL.md` and use Claude Desktop's **Edit Config** action when possible to confirm which file is actually live.
+
 ## Inspiration
 
 This project was inspired by the official Kali Linux blog post:
